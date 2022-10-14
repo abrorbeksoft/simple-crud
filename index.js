@@ -1,4 +1,5 @@
 const users = []
+const books = []
 
 const express = require("express");
 const app = express();
@@ -11,6 +12,8 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 
 const privateKey = "shhhhh"
+
+const auth = require("./app/index")
 
 router.get('/', function (req, res) {
     res.json({"name": "Abrorbek"})
@@ -74,6 +77,67 @@ router.post("/login", function (req, res) {
 
     res.json({"token": token, "message": "Login successful"});
 });
+
+router.post("/book", auth, (req, resp) => {
+    const {name, auth_name} = req.body
+
+    let book = {
+        "id": v4(),
+        "name": name,
+        "auth_name": auth_name,
+    }
+    books.push(book)
+    resp.json(book)
+})
+
+router.get("/book/:id", auth, (req, resp) => {
+    const {id} = req.params
+
+    let book = books.find(elem => {
+        return elem.id === id
+    })
+
+    if (!book) {
+        resp.json({
+            "code": 500,
+            "message": "Book not exists"
+        });
+        return
+    }
+
+    resp.json(book)
+})
+
+
+router.get("/book", auth, (req, resp) => {
+    resp.json(books)
+})
+
+router.put("/book/:id", auth, (req, resp) => {
+    const {name, auth_name} = req.body
+    const {id} = req.params
+
+    let index = books.findIndex(elem => {
+        return elem.id === id
+    })
+
+    if (!index) {
+        resp.json({
+            "code": 500,
+            "message": "Book not exists"
+        });
+        return
+    }
+
+    books[index] = {
+        "id":id,
+        "name" : name,
+        "auth_name" : auth_name
+    }
+
+    resp.json(books[index])
+})
+
 
 app.use("/api", router)
 
